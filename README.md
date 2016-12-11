@@ -1,14 +1,5 @@
+<<<<<<< HEAD
 # clj-4-the-brave
 
-A Clojure library designed to ... well, that part is up to you.
-
-## Usage
-
-FIXME
-
-## License
-
-Copyright © 2016 FIXME
-
-Distributed under the Eclipse Public License either version 1.0 or (at
-your option) any later version.
+Clojure For The Brave And True
+>>>>>>> 666274172ff7521a2952ed64dc6784664384b63d
