@@ -147,8 +147,92 @@
 
 (inc3 7) ; =>10
 
-;;let meaning let it be
+;; let meaning let it be
 
 (let [x 3] x)
 
 (let [x 3 y 4] (+ x y))
+
+;; scope of let
+
+(def x 0)
+(let [x 1] x)
+
+(def dalmatian-list ["Pongo" "Pardita" "Puppy 1" "Puppy 2"])
+
+(let [dalmatians (take 2 dalmatian-list)] dalmatians)
+
+(let [[pongo & dalms] dalmatian-list]
+  [pongo dalms])
+
+(let [[pongo] dalmatian-list]
+  [pongo])
+
+(let [pongo dalmatian-list] 
+  pongo)
+
+;; Notice that the value of a let form is the last form in its body that is evaluated
+;; let forms follow all the destructuring rules introduced in “Calling Functions” on page 48
+;; let forms have two main uses. First, they provide clarity by allowing you to name things. Second, they allow you to evaluate an expression only once and reuse the result
+;; This is “especially important when you need to reuse the result of an expensive function call, like a network API call. It’s also important when the expression has side effects
+;; let creates local variables
+
+(into [] (set [:a :a]))
+ 
+(let [[part & remaining] remaining-asym-parts]
+   (recur remaining
+          (into final-body-parts
+                (set [part (matching-part part)]))))
+
+;; original expression instead of using let, it would be a mess! 
+(recur (rest remaining-asym-parts)
+       (into final-body-parts
+             (set [(first remaining-asym-parts) (matching-part (first remaining-asym-parts))])))
+
+;; loop
+
+(loop [iteration 0]
+  (println (str "Iteration " iteration))
+  (if (> iteration 3)
+    (println "Goodbye!")
+    (recur (inc iteration))))
+
+;; [iteration 0], begins the loop and introduces a binding with an initial value
+;; The above loop function can be accomplished with the following code
+;; Multiple arity function
+
+(defn recursive-printer
+   ([]
+    (recursive-printer 0)) ; 0 arity
+   ([iteration]
+    (println "Iteration " iteration)
+    (if (> iteration 3)
+       (println "Goodbye!")
+       (recursive-printer (inc iteration))))) ; 1 arity
+
+(recursive-printer) ;; call the function
+
+;; loop is a bit more verbose. Also, loop has much better performance
+
+;; Regular Expression
+;; The literal notation for a regular expression is to place the expression in quotes after a hash mark
+
+#"regular-expression"  ;; eg: #"^left-"
+
+;; clojure.string/replace uses the regular expression #"^left-" to match strings starting with "left-" in order to replace "left-" with "right-". The carat, ^, is how the regular expression signals that it will match the text "left-" only if it’s at the beginning of the string
+
+;;You can test this with re-find, which checks whether a string matches the pattern described by a regular expression, returning the matched text or nil if there is no match
+
+(re-find #"^left-" "left-eye")
+
+(re-find #"^left-" "eye-eye")
+
+(defn matching-part
+   [part]
+   {:name (clojure.string/replace (:name part) #"^left-" "right-")
+    :size (:size part)})
+
+(matching-part {:name "left-eye" :size 1})
+(matching-part {:name "eye" :size 1})
+
+
