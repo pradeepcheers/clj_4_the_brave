@@ -190,14 +190,20 @@
              (set [(first remaining-asym-parts) (matching-part (first remaining-asym-parts))])))
 
 ;; loop
-
 (loop [iteration 0]
   (println (str "Iteration " iteration))
   (if (> iteration 3)
     (println "Goodbye!")
     (recur (inc iteration))))
 
-;; [iteration 0], begins the loop and introduces a binding with an initial value
+(loop [iter 1 acc  0]
+  (println iter " " acc)
+  (if (> iter 10)
+      (println acc)
+      (recur (inc iter) (+ acc iter))))
+
+
+;; [iteration 0], begins the loop and introduces a binding with an iqnitial value
 ;; The above loop function can be accomplished with the following code
 ;; Multiple arity function
 
@@ -234,5 +240,127 @@
 
 (matching-part {:name "left-eye" :size 1})
 (matching-part {:name "eye" :size 1})
+
+;; reduce  (reduce + [1 2 3 4]) => 10
+
+(reduce + [1 2 3 4])
+
+;; reduce syntax with optional initial value (reduce + 15 [1 2 3 4]) => 25
+
+(reduce + 15 [1 2 3 4])
+
+(def asym-hobbit-body-parts [{:name "head" :size 3}
+                             {:name "left-eye" :size 1}
+                             {:name "left-ear" :size 1}
+                             {:name "mouth" :size 1}
+                             {:name "nose" :size 1}
+                             {:name "neck" :size 2}
+                             {:name "left-shoulder" :size 3}
+                             {:name "left-upper-arm" :size 3}
+                             {:name "chest" :size 10}
+                             {:name "back" :size 10}
+                             {:name "left-forearm" :size 3}
+                             {:name "abdomen" :size 6}
+                             {:name "left-kidney" :size 1}
+                             {:name "left-hand" :size 2}
+                             {:name "left-knee" :size 2}
+                             {:name "left-thigh" :size 4}
+                             {:name "left-lower-leg" :size 3}
+                             {:name "left-achilles" :size 1}
+                             {:name "left-foot" :size 2}])
+
+
+(defn matching-part
+   [part]
+   {:name (clojure.string/replace (:name part) #"^left-" "right-")
+      :size (:size part)})
+
+
+(defn symmetrize-body-parts
+    "Expects a seq of maps that have a :name and :size"
+    [asym-body-parts]
+    (loop [remaining-asym-parts asym-body-parts
+           final-body-parts []]
+      (if (empty? remaining-asym-parts)
+        final-body-parts
+        (let [[part & remaining] remaining-asym-parts]
+          (recur remaining
+           (into final-body-parts
+                  (set [part (matching-part part)])))))))
+
+(symmetrize-body-parts asym-hobbit-body-parts)
+
+(def symmetrized-output [{:name "head", :size 3} 
+                         {:name "left-eye", :size 1} {:name "right-eye", :size 1} 
+                         {:name "left-ear", :size 1} {:name "right-ear", :size 1} 
+                         {:name "mouth", :size 1} 
+                         {:name "nose", :size 1} 
+                         {:name "neck", :size 2} 
+                         {:name "left-shoulder", :size 3} {:name "right-shoulder", :size 3} 
+                         {:name "right-upper-arm", :size 3} {:name "left-upper-arm", :size 3} 
+                         {:name "chest", :size 10} 
+                         {:name "back", :size 10} 
+                         {:name "left-forearm", :size 3} {:name "right-forearm", :size 3} 
+                         {:name "abdomen", :size 6} 
+                         {:name "left-kidney", :size 1} {:name "right-kidney", :size 1} 
+                         {:name "left-hand", :size 2} {:name "right-hand", :size 2} 
+                         {:name "right-knee", :size 2} {:name "left-knee", :size 2} 
+                         {:name "right-thigh", :size 4} {:name "left-thigh", :size 4} 
+                         {:name "right-lower-leg", :size 3} {:name "left-lower-leg", :size 3} 
+                         {:name "right-achilles", :size 1} {:name "left-achilles", :size 1} 
+                         {:name "right-foot", :size 2} {:name "left-foot", :size 2}])
+
+
+(defn my-reduce
+  ([f initial coll]
+   (loop [result initial remaining coll]
+     (if(empty? remaining)
+      result
+      (recur (f result (first remaining)) (rest remaining)))))
+  ([f [head & tail]]
+    (my-reduce f head tail)))
+
+
+;; reduce has 2 syntax structures (reduce f coll) (reduce f val coll)
+
+;; if I use the first syntax by removing [] in the following function better-symmetrize-body-parts, it returs {:name "right-eye", :size 1} the last element of the result
+
+;; if I use the second syntax it returns the expected result [{:name "head", :size 3} {:name "left-eye", :size 1} {:name "right-eye", :size 1}]
+
+;; the return value of the function better-symmetrize-body-parts is final-body-parts of into function not asym-body-parts, which is just passing input values to reduce function
+
+(defn better-symmetrize-body-parts
+  "Expects a seq of maps that have a :name and :size"
+  [asym-body-parts]
+  (reduce (fn [final-body-parts part]
+              (into final-body-parts (set [part (matching-part part)])))
+          []
+          asym-body-parts))
+
+(better-symmetrize-body-parts asym-hobbit-body-parts)
+
+(better-symmetrize-body-parts 
+ (vector (nth asym-hobbit-body-parts 0) (nth asym-hobbit-body-parts 1)))
+
+
+(vector (nth asym-hobbit-body-parts 0) (nth asym-hobbit-body-parts 1))
+
+
+;; reduce is more expressive over using loop, by abstracting the reduce process into a function that takes another function as an argument, your program becomes more composable
+
+
+(defn hit
+  [asym-body-parts]
+  (let [sym-parts (better-symmetrize-body-parts asym-body-parts)
+        body-part-size-sum (reduce + (map :size sym-parts))
+        target (rand body-part-size-sum)]
+    (loop [[part & remaining] sym-parts
+           accumulated-size (:size part)]
+      (if (> accumulated-size target)
+        part
+        (recur remaining (+ accumulated-size (:size (first remaining))))))))
+
+
+(hit asym-hobbit-body-parts)
 
 
