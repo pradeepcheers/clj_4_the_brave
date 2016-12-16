@@ -73,6 +73,8 @@
 ;; The following is option of using get to test if the value is nil is not right. Its better to use contains? instead.
 (get #{:a nil} nil)
 
+(contains? #{1 nil "a"} nil)
+
 (inc 1)
 
 (map inc [1 2 3])
