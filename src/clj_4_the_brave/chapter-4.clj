@@ -190,16 +190,6 @@
 
 ;; map is lazy
 
-
-
-
-
-
-
-
-
-
-
 ;;**** Add work buffer changes  ****
 
 ;; Infinite Sequence
@@ -248,6 +238,116 @@
 (map identity [:garlic-clove :garlic-clove])
 
 (into #{} (map identity [:garlic-clove :garlic-clove]))
+
+(into {:favorite-emotion "gloomy"} [[:sunlight-reaction "Glitter!"]])
+
+(into ["cherry"] '("pine" "spruce"))
+
+(into {:favorite-animal "kitty"} {:least-favorite-smell "dog"
+:relationship-with-teenager "creepy"})
+
+;; conj
+
+(conj [0] [1]) ;; [0 [1]] where as (into [0] [1]) returns [0 1]. The same can be achieved by the following code.
+
+(conj [0] 1 2 3 4)
+
+(conj {:time "mid-night"} [:place "ye olde cemetarium"])
+
+;; conj and into are so similar that you could even define conj in terms of into:
+
+(defn my-conj
+  [target & additions]
+  (into target additions))
+
+(my-conj [0] 1 2 3)
+
+;; Function Functions: Accepts function as arguments and return funtion as values. 'apply' and 'partial'
+
+;; apply, apply explodes a seqable data structure so it can be passed to a function that expects a rest parameter. 
+
+(max 0 1 2)
+
+(max [0 1 2])
+
+(apply max [0 1 2])
+
+(apply max #{0 1 2})
+
+;; You’ll often use apply like this, exploding the elements of a collection so that they get passed to a function as separate arguments
+
+(defn my-into
+  [target additions]
+  (apply conj target additions))
+
+(my-into [0] [1 2 3])
+
+;; partial, takes a function and any number of arguments. It then returns a new function. When you call the returned function, it calls the original function with the original arguments you supplied it along with the new arguments.
+
+(def addTen (partial + 10))
+
+(addTen 3)
+
+(addTen 10 10)
+
+(def add-missing-elements
+  (partial conj ["water" "earth" "air"]))
+
+(add-missing-elements "and" "anything")
+
+(defn my-partial
+  [partialized-fn & args]
+  (fn [& more-args]
+    (apply partialized-fn (into args more-args))))
+
+(def add20 (my-partial + 20))
+
+;; upon calling (my-partial + 20) will return (fn [& more-args] (apply + (into [20] more-args)))
+
+(add20 3)
+
+(add20 3 3)
+
+;; In general, you want to use partials when you find you’re repeating the same combination of function and arguments in many different contexts
+
+(defn lousy-logger
+   [log-level message]
+   (condp = log-level
+    :warn (clojure.string/lower-case message)
+    :emergency (clojure.string/upper-case message)))
+
+(def warn (partial lousy-logger :warn))
+
+(warn "Red light ahead")
+
+;; condp is like a switch statement. warn is accepting a partial function and the argument for the partial function is passed when calling warn function
+
+;; calling (warn "Red light ahead") is identical to calling (lousy-logger :warn "Red light ahead")
+
+;; complement, in the following function #(not (vampire? %)) is a negation. The negation is so common and hence the compliment function.
+
+(defn identify-humans
+   [social-security-numbers]
+   (filter #(not (vampire? %))
+          (map vampire-related-details social-security-numbers)))
+
+(defn not-vampire? (complement vampire?))
+
+(defn identify-humans
+  [social-security-numbers]
+  (filter not-vampire? (map vampire-related-details social-security-numbers)))
+
+(neg? 1)
+
+((complement neg?) 1)
+
+(def mypos? (complement neg?))
+
+(mypos? 1)
+
+(mypos? -1)
+
+
 
 
 
